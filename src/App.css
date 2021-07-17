@@ -1,5 +1,5 @@
 .App {
-  text-align: center;
+  text-align: left;
 }
 
 .App-logo {
@@ -13,7 +13,7 @@
   }
 }
 
-.App-header {
+/*.App-header {
   background-color: #282c34;
   min-height: 100vh;
   display: flex;
@@ -22,7 +22,7 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
-}
+}*/
 
 .App-link {
   color: #61dafb;
@@ -35,4 +35,33 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.articles-container {
+  padding: 5px;
+}
+
+.article-widget {
+  margin-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.article-widget > .article-content {
+  white-space: pre-wrap;
+  text-indent: 10px;
+}
+
+.author-nickname {
+  color: #0D58DA;
+}
+
+.author-nickname:hover {
+  text-decoration-line: underline;
+  cursor: pointer;
+}
+
+.start-page {
+  min-height: 100vh;
+  background-color: aquamarine;
 }
