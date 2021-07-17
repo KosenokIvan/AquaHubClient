@@ -66,7 +66,7 @@ class AppContent extends React.Component {
                       expand="lg"
                       bg="light" 
                       sticky="top">
-                        <Container>
+                        <Container fluid>
                             <Navbar.Brand>AquaHub</Navbar.Brand>
                             <Navbar.Toggle aria-controls="navbar-nav"/>
                             <Navbar.Collapse id="navbar-nav">
