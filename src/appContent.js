@@ -2,7 +2,7 @@ import React from "react";
 
 import AquaHubAPIWorker from "./aqua_hub_api/aquaHubAPI";
 
-import Button from "react-bootstrap/Button";
+// import Button from "react-bootstrap/Button";
 import Navbar from "react-bootstrap/Navbar";
 import Nav from "react-bootstrap/Nav";
 import Container from "react-bootstrap/Container";
@@ -66,23 +66,23 @@ class AppContent extends React.Component {
                       expand="lg"
                       bg="light" 
                       sticky="top">
-                        <Container>
+                        <Container fluid>
                             <Navbar.Brand>AquaHub</Navbar.Brand>
                             <Navbar.Toggle aria-controls="navbar-nav"/>
                             <Navbar.Collapse id="navbar-nav">
                                 <Nav className="me-auto">
                                     <Nav.Item>
-                                        <Button
-                                        variant="link"
+                                        <Nav.Link
                                         onClick={
-                                            () => {
+                                            (e) => {
+                                                e.preventDefault();
                                                 this.setState({
                                                     currentPage: cst.MAIN_PAGE
                                                 });
                                             }
                                         }>
                                             Main page
-                                        </Button>
+                                        </Nav.Link>
                                     </Nav.Item>
                                 </Nav>
                             </Navbar.Collapse>

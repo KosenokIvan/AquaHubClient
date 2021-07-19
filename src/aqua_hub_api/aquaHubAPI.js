@@ -1,6 +1,8 @@
 import User from "./user";
 import Article from "./article";
 
+import * as err from "../tools/errors";
+
 class AquaHubAPIWorker {
     constructor(serverAddr) {
         this.serverAddr = serverAddr;
@@ -23,13 +25,40 @@ class AquaHubAPIWorker {
         return fetch(`${this.serverAddr}/${addr}${argsString}`, options);
     }
 
+    async login(nickname, password) {
+        let response = await this.aquaFetch("/login", {}, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify({
+                nickname: nickname,
+                password: password
+            })
+        });
+        if (response.ok) {
+            let token = await response.json();
+            return token;
+        } else {
+            if (response.status === 401) {
+                Promise.reject(new err.IncorrectLoginData("Incorrect nickname or password"));
+            } else {
+                Promise.reject(new err.AquaHubError(`Login error: ${response.status} (${response.statusText})`));
+            }
+        }
+    }
+
     async getUser(userId) {
         let response = await this.aquaFetch(`users/${userId}`);
         if (response.ok) {
             let jsonUser = await response.json();
             return User.fromJSONObject(jsonUser, this);
         } else {
-            // make errors
+            if (response.status === 404) {
+                Promise.reject(new err.UserNotFoundError(`User ${userId} not found`));
+            } else {
+                Promise.reject(new err.AquaHubError(`getUser(${userId}) error: ${response.status} (${response.statusText})`));
+            }
         }
     }
 
@@ -57,7 +86,7 @@ class AquaHubAPIWorker {
              );
              return users;
         } else {
-            // make errors
+            Promise.reject(new err.AquaHubError(`getUsers error: ${response.status} (${response.statusText})`));
         }
     }
 
@@ -67,7 +96,11 @@ class AquaHubAPIWorker {
             let jsonArticle = await response.json();
             return Article.fromJSONObject(jsonArticle, this);
         } else {
-            // make errors
+            if (response.status === 404) {
+                Promise.reject(new err.ArticleNotFoundError(`Article ${articleId} not found`));
+            } else {
+                Promise.reject(new err.AquaHubError(`getArticle(${articleId}) error: ${response.status} (${response.statusText})`));
+            }
         }
     }
 
@@ -97,7 +130,7 @@ class AquaHubAPIWorker {
             );
             return articles;
         } else {
-            // make errors
+            Promise.reject(new err.AquaHubError(`getArticles error: ${response.status} (${response.statusText})`));
         }
     }
 }
