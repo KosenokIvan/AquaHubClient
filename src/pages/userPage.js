@@ -6,7 +6,8 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 
 import ArticlesList from "../widgets/articlesList";
-// import * as cst from "../tools/constants"
+import {ConnectionErrorWidget} from "../widgets/errorWidget";
+// import * as cst from "../tools/constants";
 
 class UserPage extends React.Component {
     constructor(props) {
@@ -43,7 +44,7 @@ class UserPage extends React.Component {
             );
         } else {
             content = (
-                <div>Connection error!</div>
+                <ConnectionErrorWidget/>
             );
         }
         return (
@@ -64,12 +65,24 @@ class UserPage extends React.Component {
             (articles) => {
                 articlesList = articles;
                 return this.loadUser(this.props.userId);
+            },
+            (error) => {
+                console.error(`Load articles error: ${error.message}`);
+                this.setState({
+                    connectionError: true
+                });
             }
         ).then(
             (authors) => {
                 this.setState({
                     articles: articlesList,
                     authors: authors
+                });
+            },
+            (error) => {
+                console.error(`Load articles error: ${error.message}`);
+                this.setState({
+                    connectionError: true
                 });
             }
         );
@@ -78,7 +91,12 @@ class UserPage extends React.Component {
     async loadUser(userId) {
         let authors = new Map();
         let apiWorker = this.props.apiWorker;
-        let author = await apiWorker.getUser(userId);
+        let author;
+        try {
+            author = await apiWorker.getUser(userId);
+        } catch (error) {
+            Promise.reject(error);
+        }
         authors.set(userId, author);
         return authors;
     }
