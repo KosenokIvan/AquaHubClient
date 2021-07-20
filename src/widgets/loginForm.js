@@ -37,6 +37,7 @@ class LoginForm extends React.Component {
                         this.state.password
                     );
                     e.preventDefault();
+                    e.stopPropagation();
                 }
             }>
                 <Form.Group className="mb-3">

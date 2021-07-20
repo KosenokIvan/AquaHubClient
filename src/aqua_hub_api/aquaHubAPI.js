@@ -6,6 +6,7 @@ import * as err from "../tools/errors";
 class AquaHubAPIWorker {
     constructor(serverAddr) {
         this.serverAddr = serverAddr;
+        this.token = null;
     }
 
     aquaFetch(addr, getArgs={}, options={}) {
@@ -22,6 +23,12 @@ class AquaHubAPIWorker {
             }
         }
         let argsString = args.length > 0 ? `?${args.join("&")}` : "";
+        if (this.token !== null) {
+            if (options.headers === undefined) {
+                options.headers = {};
+            }
+            options.headers["Authorization"] = `${this.token.token_type} ${this.token.access_token}`;
+        }
         return fetch(`${this.serverAddr}/${addr}${argsString}`, options);
     }
 
@@ -38,7 +45,7 @@ class AquaHubAPIWorker {
         });
         if (response.ok) {
             let token = await response.json();
-            return token;
+            this.token = token;
         } else {
             if (response.status === 401) {
                 Promise.reject(new err.IncorrectLoginData("Incorrect nickname or password"));
@@ -58,6 +65,20 @@ class AquaHubAPIWorker {
                 Promise.reject(new err.UserNotFoundError(`User ${userId} not found`));
             } else {
                 Promise.reject(new err.AquaHubError(`getUser(${userId}) error: ${response.status} (${response.statusText})`));
+            }
+        }
+    }
+
+    async getUserMe() {
+        let response = await this.aquaFetch(`users/me`);
+        if (response.ok) {
+            let jsonUser = await response.json();
+            return User.fromJSONObject(jsonUser, this);
+        } else {
+            if (response.status === 401) {
+                Promise.reject(new err.UnauthorizedError("Unauthorized"));
+            } else {
+                Promise.reject(new err.AquaHubError(`getUser(me)) error: ${response.status} (${response.statusText})`));
             }
         }
     }
