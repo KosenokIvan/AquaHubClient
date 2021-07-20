@@ -1,6 +1,8 @@
 import React from "react";
 
 // import Card from "react-bootstrap/Card";
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/Row";
 
 import ArticlesList from "../widgets/articlesList";
 // import * as cst from "../tools/constants"
@@ -23,10 +25,14 @@ class UserPage extends React.Component {
                 <>
                     {
                         user !== undefined &&
-                        <div className="user-info">
-                            <h3>@{user.nickname}</h3>
-                            <p>{user.description === null ? '' : user.description}</p>
-                        </div>
+                        <Container className="user-info" fluid>
+                            <Row>
+                                <h3>@{user.nickname}</h3>
+                            </Row>
+                            <Row>    
+                                <p>{user.description === null ? '' : user.description}</p>
+                            </Row>
+                        </Container>
                     }
                     <ArticlesList 
                         articles={this.state.articles}

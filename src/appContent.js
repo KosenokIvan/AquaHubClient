@@ -15,58 +15,63 @@ class AppContent extends React.Component {
     constructor(props) {
         super(props);
         this.apiWorker = new AquaHubAPIWorker(cst.SERVER_ADDR);
+        this.getMainPage = this.getMainPage.bind(this);
+        this.openMainPage = this.openMainPage.bind(this);
+        this.openUserPage = this.openUserPage.bind(this);
+        this.openLoginPage = this.openLoginPage.bind(this);
         this.state = {
-            currentPage: cst.MAIN_PAGE,
-            currentPageData: {},
+            currentPage: this.getMainPage(),
             currentUser: null
-        }
+        };
+    }
+
+    getMainPage() {
+        return (
+            <MainPage
+            apiWorker={this.apiWorker}
+            onNicknameClick={
+                (user) => {
+                    this.openUserPage(user.userId);
+                }
+            }/>
+        );
+    }
+
+    openMainPage() {
+        this.setState({
+            currentPage: this.getMainPage()
+        });
+    }
+
+    openUserPage(user_id) {
+        this.setState({
+            currentPage: (
+                <UserPage
+                apiWorker={this.apiWorker}
+                userId={user_id}
+                onNicknameClick={
+                    (user) => {
+                        this.openUserPage(user.userId);
+                    }
+                }/>
+            )
+        });
+    }
+
+    openLoginPage() {
+        this.setState({
+            currentPage: (
+                <LoginPage
+                onLogin={
+                    (nickname, password) => {
+                        alert(`Nickname: ${nickname}\nPassword: ${"*".repeat(password.length)}`);
+                    } 
+                }/>
+            )
+        });
     }
 
     render() {
-        let currentPage;
-        switch(this.state.currentPage) {
-            case cst.MAIN_PAGE:
-                currentPage = <MainPage 
-                    apiWorker={this.apiWorker}
-                    onNicknameClick={
-                        (user) => {
-                            this.setState({
-                                currentPage: cst.USER_PAGE,
-                                currentPageData: {
-                                    userId: user.userId
-                                }
-                            });
-                        }
-                }/>;
-                break;
-            case cst.USER_PAGE:
-                currentPage = <UserPage 
-                    apiWorker={this.apiWorker}
-                    userId={this.state.currentPageData.userId}
-                    onNicknameClick={
-                        (user) => {
-                            this.setState({
-                                currentPage: cst.USER_PAGE,
-                                currentPageData: {
-                                    userId: user.userId
-                                }
-                            });
-                        }
-                    }/>;
-                break;
-            case cst.LOGIN_PAGE:
-                currentPage = <LoginPage
-                    onLogin={
-                        (nickname, password) => {
-                            alert(`Nickname: ${nickname}\nPassword: ${"*".repeat(password.length)}`);
-                        }
-                    }/>;
-                break;
-            default:
-                currentPage = (<div>
-                    Unknown page: {this.state.currentPage}
-                </div>);  // TODO: add error widget
-        }
         return (
             <div className="App">
                 <header className="App-header">
@@ -80,27 +85,12 @@ class AppContent extends React.Component {
                             <Navbar.Collapse id="navbar-nav">
                                 <Nav className="me-auto">
                                     <Nav.Item>
-                                        <Nav.Link
-                                        onClick={
-                                            () => {
-                                                this.setState({
-                                                    currentPage: cst.MAIN_PAGE
-                                                });
-                                            }
-                                        }>
+                                        <Nav.Link onClick={this.openMainPage}>
                                             Main page
                                         </Nav.Link>
                                     </Nav.Item>
                                     <Nav.Item>
-                                        <Nav.Link
-                                        variant="link"
-                                        onClick={
-                                            () => {
-                                                this.setState({
-                                                    currentPage: cst.LOGIN_PAGE
-                                                });
-                                            }
-                                        }>
+                                        <Nav.Link variant="link" onClick={this.openLoginPage}>
                                             Login
                                         </Nav.Link>
                                     </Nav.Item>
@@ -109,7 +99,7 @@ class AppContent extends React.Component {
                         </Container>
                     </Navbar>
                 </header>
-                {currentPage}
+                {this.state.currentPage}
             </div>
         );
     }
