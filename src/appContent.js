@@ -2,13 +2,13 @@ import React from "react";
 
 import AquaHubAPIWorker from "./aqua_hub_api/aquaHubAPI";
 
-import Button from "react-bootstrap/Button";
 import Navbar from "react-bootstrap/Navbar";
 import Nav from "react-bootstrap/Nav";
 import Container from "react-bootstrap/Container";
 
 import MainPage from "./pages/mainPage";
 import UserPage from "./pages/userPage";
+import LoginPage from "./pages/loginPage";
 import * as cst from "./tools/constants";
 
 class AppContent extends React.Component {
@@ -54,6 +54,14 @@ class AppContent extends React.Component {
                         }
                     }/>;
                 break;
+            case cst.LOGIN_PAGE:
+                currentPage = <LoginPage
+                    onLogin={
+                        (nickname, password) => {
+                            alert(`Nickname: ${nickname}\nPassword: ${"*".repeat(password.length)}`);
+                        }
+                    }/>;
+                break;
             default:
                 currentPage = (<div>
                     Unknown page: {this.state.currentPage}
@@ -66,14 +74,13 @@ class AppContent extends React.Component {
                       expand="lg"
                       bg="light" 
                       sticky="top">
-                        <Container>
+                        <Container fluid>
                             <Navbar.Brand>AquaHub</Navbar.Brand>
                             <Navbar.Toggle aria-controls="navbar-nav"/>
                             <Navbar.Collapse id="navbar-nav">
                                 <Nav className="me-auto">
                                     <Nav.Item>
-                                        <Button
-                                        variant="link"
+                                        <Nav.Link
                                         onClick={
                                             () => {
                                                 this.setState({
@@ -82,7 +89,20 @@ class AppContent extends React.Component {
                                             }
                                         }>
                                             Main page
-                                        </Button>
+                                        </Nav.Link>
+                                    </Nav.Item>
+                                    <Nav.Item>
+                                        <Nav.Link
+                                        variant="link"
+                                        onClick={
+                                            () => {
+                                                this.setState({
+                                                    currentPage: cst.LOGIN_PAGE
+                                                });
+                                            }
+                                        }>
+                                            Login
+                                        </Nav.Link>
                                     </Nav.Item>
                                 </Nav>
                             </Navbar.Collapse>
