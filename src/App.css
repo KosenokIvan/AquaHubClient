@@ -61,7 +61,6 @@
   cursor: pointer;
 }
 
-.start-page {
-  min-height: 100vh;
-  background-color: aquamarine;
+.user-info {
+  margin-top: 5px;
 }
