@@ -15,10 +15,13 @@ class AppContent extends React.Component {
     constructor(props) {
         super(props);
         this.apiWorker = new AquaHubAPIWorker(cst.SERVER_ADDR);
+
         this.getMainPage = this.getMainPage.bind(this);
         this.openMainPage = this.openMainPage.bind(this);
         this.openUserPage = this.openUserPage.bind(this);
+        this.openUserMePage = this.openUserMePage.bind(this);
         this.openLoginPage = this.openLoginPage.bind(this);
+
         this.state = {
             currentPage: this.getMainPage(),
             currentUser: null
@@ -58,13 +61,36 @@ class AppContent extends React.Component {
         });
     }
 
-    openLoginPage() {
+    openUserMePage() {
+        this.setState({
+            currentPage: (
+                <UserPage
+                apiWorker={this.apiWorker}
+                userId="me"
+                onNicknameClick={
+                    (user) => {
+                        this.openUserPage(user.userId);
+                    }
+                }/>
+            )
+        });
+    }
+
+    openLoginPage(errorMessage=null) {
         this.setState({
             currentPage: (
                 <LoginPage
+                errorMessage={errorMessage}
                 onLogin={
                     (nickname, password) => {
-                        alert(`Nickname: ${nickname}\nPassword: ${"*".repeat(password.length)}`);
+                        this.apiWorker.login(nickname, password).then(
+                            () => {
+                                this.openUserMePage();
+                            },
+                            (err) => {
+                                this.openLoginPage(err.message);
+                            }
+                        );
                     } 
                 }/>
             )
@@ -90,7 +116,11 @@ class AppContent extends React.Component {
                                         </Nav.Link>
                                     </Nav.Item>
                                     <Nav.Item>
-                                        <Nav.Link variant="link" onClick={this.openLoginPage}>
+                                        <Nav.Link variant="link" onClick={
+                                            () => {
+                                                this.openLoginPage(null);
+                                            }
+                                        }>
                                             Login
                                         </Nav.Link>
                                     </Nav.Item>

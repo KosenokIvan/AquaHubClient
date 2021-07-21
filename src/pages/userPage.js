@@ -5,6 +5,7 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 
 import ArticlesList from "../widgets/articlesList";
+import {ConnectionErrorWidget} from "../widgets/errorWidget";
 // import * as cst from "../tools/constants"
 
 class UserPage extends React.Component {
@@ -12,19 +13,23 @@ class UserPage extends React.Component {
         super(props);
         this.state = {
             articles: [],
-            authors: new Map(),
+            user: null,
             connectionError: false
         }
     }
 
     render() {
         let content;
-        let user = this.state.authors.get(this.props.userId);
+        let user = this.state.user;
+        let authorsMap = new Map();
+        if (user !== null) {
+            authorsMap.set(user.userId, user);
+        }
         if (!this.state.connectionError) {
             content = (
                 <>
                     {
-                        user !== undefined &&
+                        user !== null &&
                         <Container className="user-info" fluid>
                             <Row>
                                 <h3>@{user.nickname}</h3>
@@ -36,13 +41,13 @@ class UserPage extends React.Component {
                     }
                     <ArticlesList 
                         articles={this.state.articles}
-                        authors={this.state.authors}
+                        authors={authorsMap}
                         onNicknameClick={this.props.onNicknameClick}/>
                 </>
             );
         } else {
             content = (
-                <div>Connection error!</div>
+                <ConnectionErrorWidget/>
             );
         }
         return (
@@ -57,56 +62,45 @@ class UserPage extends React.Component {
     }
 
     loadArticles() {
-        let articlesList;
+        let user;
+        let authors = new Map();
         let apiWorker = this.props.apiWorker;
-        apiWorker.getArticles(null, null, [this.props.userId]).then(
-            (articles) => {
-                articlesList = articles;
-                return this.loadUser(this.props.userId);
+        this.loadUser(this.props.userId).then(
+            (userObj) => {
+                user = userObj;
+                authors.set(user.userId, user);
+                return apiWorker.getArticles(null, null, [user.userId]);
             }
         ).then(
-            (authors) => {
+            (articles) => {
                 this.setState({
-                    articles: articlesList,
-                    authors: authors
+                    articles: articles,
+                    user: user
                 });
             }
-        );
-        /*fetch(`${cst.SERVER_ADDR}/articles/?author_ids=${this.props.userId}`).then(
-            (response) => {
-                if (response.ok) {
-                    response.json().then(
-                        (articles) => {
-                            articlesList = articles;
-                            return this.loadUser(this.props.userId);
-                        }
-                    ).then(
-                        (authors) => {
-                            this.setState({
-                                articles: articlesList,
-                                authors: authors
-                            });
-                        }
-                    );
-                } else {
-                    console.log(`Load articles error: ${response.status} (${response.statusText})`);
-                }
-            },
-            (reason) => {
-                console.log(`Http error: "${reason}"`);
+        ).catch(
+            (err) => {
+                console.error(`HTTP error: ${err.message}`);
                 this.setState({
                     connectionError: true
                 });
             }
-        );*/
+        );
     }
 
     async loadUser(userId) {
-        let authors = new Map();
         let apiWorker = this.props.apiWorker;
-        let author = await apiWorker.getUser(userId);
-        authors.set(userId, author);
-        return authors;
+        let author;
+        try {
+            if (userId === "me") {
+                author = await apiWorker.getUserMe();
+            } else {
+                author = await apiWorker.getUser(userId);
+            }
+        } catch (error) {
+            Promise.reject(error);
+        }
+        return author;
     }
 }
 

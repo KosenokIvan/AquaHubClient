@@ -33,10 +33,11 @@ class AquaHubAPIWorker {
     }
 
     async login(nickname, password) {
-        let response = await this.aquaFetch("/login", {}, {
+        let response = await this.aquaFetch("login", {}, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json;charset=utf-8"
+                "accept": "application/json",
+                "Content-Type": "application/json"
             },
             body: JSON.stringify({
                 nickname: nickname,
@@ -47,10 +48,10 @@ class AquaHubAPIWorker {
             let token = await response.json();
             this.token = token;
         } else {
-            if (response.status === 401) {
-                Promise.reject(new err.IncorrectLoginData("Incorrect nickname or password"));
+            if (response.status === 401 || response.status === 422) {
+                await Promise.reject(new err.IncorrectLoginData("Incorrect nickname or password"));  
             } else {
-                Promise.reject(new err.AquaHubError(`Login error: ${response.status} (${response.statusText})`));
+                await Promise.reject(new err.AquaHubError(`Login error: ${response.status} (${response.statusText})`));
             }
         }
     }
@@ -62,9 +63,9 @@ class AquaHubAPIWorker {
             return User.fromJSONObject(jsonUser, this);
         } else {
             if (response.status === 404) {
-                Promise.reject(new err.UserNotFoundError(`User ${userId} not found`));
+                await Promise.reject(new err.UserNotFoundError(`User ${userId} not found`));
             } else {
-                Promise.reject(new err.AquaHubError(`getUser(${userId}) error: ${response.status} (${response.statusText})`));
+                await Promise.reject(new err.AquaHubError(`getUser(${userId}) error: ${response.status} (${response.statusText})`));
             }
         }
     }
@@ -76,9 +77,9 @@ class AquaHubAPIWorker {
             return User.fromJSONObject(jsonUser, this);
         } else {
             if (response.status === 401) {
-                Promise.reject(new err.UnauthorizedError("Unauthorized"));
+                await Promise.reject(new err.UnauthorizedError("Unauthorized"));
             } else {
-                Promise.reject(new err.AquaHubError(`getUser(me)) error: ${response.status} (${response.statusText})`));
+                await Promise.reject(new err.AquaHubError(`getUser(me)) error: ${response.status} (${response.statusText})`));
             }
         }
     }
@@ -107,7 +108,7 @@ class AquaHubAPIWorker {
              );
              return users;
         } else {
-            Promise.reject(new err.AquaHubError(`getUsers error: ${response.status} (${response.statusText})`));
+            await Promise.reject(new err.AquaHubError(`getUsers error: ${response.status} (${response.statusText})`));
         }
     }
 
@@ -118,9 +119,9 @@ class AquaHubAPIWorker {
             return Article.fromJSONObject(jsonArticle, this);
         } else {
             if (response.status === 404) {
-                Promise.reject(new err.ArticleNotFoundError(`Article ${articleId} not found`));
+                await Promise.reject(new err.ArticleNotFoundError(`Article ${articleId} not found`));
             } else {
-                Promise.reject(new err.AquaHubError(`getArticle(${articleId}) error: ${response.status} (${response.statusText})`));
+                await Promise.reject(new err.AquaHubError(`getArticle(${articleId}) error: ${response.status} (${response.statusText})`));
             }
         }
     }
@@ -151,7 +152,7 @@ class AquaHubAPIWorker {
             );
             return articles;
         } else {
-            Promise.reject(new err.AquaHubError(`getArticles error: ${response.status} (${response.statusText})`));
+            await Promise.reject(new err.AquaHubError(`getArticles error: ${response.status} (${response.statusText})`));
         }
     }
 }

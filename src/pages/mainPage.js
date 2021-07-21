@@ -1,6 +1,7 @@
 import React from "react";
 
 import ArticlesList from "../widgets/articlesList";
+import {ConnectionErrorWidget} from "../widgets/errorWidget";
 // import * as cst from "../tools/constants"
 
 class MainPage extends React.Component {
@@ -24,7 +25,7 @@ class MainPage extends React.Component {
             );
         } else {
             content = (
-                <div>Connection error!</div>
+                <ConnectionErrorWidget/>
             );
         }
         return (
@@ -41,7 +42,8 @@ class MainPage extends React.Component {
     loadArticles() {
         let articlesList;
         let apiWorker = this.props.apiWorker;
-        apiWorker.getArticles().then(
+        let articles_response = apiWorker.getArticles();
+        articles_response.then(
             (articles) => {
                 let authors = new Set();
                 for (let article of articles) {
@@ -49,6 +51,12 @@ class MainPage extends React.Component {
                 }
                 articlesList = articles;
                 return this.loadAuthors(authors);
+            },
+            (error) => {
+                console.error(`Load articles error: ${error.message}`);
+                this.setState({
+                    connectionError: true
+                });
             }
         ).then(
             (authors) => {
@@ -56,39 +64,14 @@ class MainPage extends React.Component {
                     articles: articlesList,
                     authors: authors
                 });
-            }
-        );
-        /*fetch(`${cst.SERVER_ADDR}/articles/`).then(
-            (response) => {
-                if (response.ok) {
-                    response.json().then(
-                        (articles) => {
-                            let authors = new Set();
-                            for (let article of articles) {
-                                authors.add(article.author_id);
-                            }
-                            articlesList = articles;
-                            return this.loadAuthors(authors);
-                        }
-                    ).then(
-                        (authors) => {
-                            this.setState({
-                                articles: articlesList,
-                                authors: authors
-                            });
-                        }
-                    );
-                } else {
-                    console.log(`Load articles error: ${response.status} (${response.statusText})`);
-                }
             },
-            (reason) => {
-                console.log(`Http error: "${reason}"`);
+            (error) => {
+                console.error(`Load articles error: ${error.message}`);
                 this.setState({
-                    connection_error: true
+                    connectionError: true
                 });
             }
-        );*/
+        );
     }
 
     async loadAuthors(authorIds) {
@@ -96,7 +79,11 @@ class MainPage extends React.Component {
         let authors = new Map();
         let author;
         for (let authorId of authorIds) {
-            author = await apiWorker.getUser(authorId);
+            try {
+                author = await apiWorker.getUser(authorId);
+            } catch (error) {
+                Promise.reject(error);
+            }
             authors.set(authorId, author);
         }
         return authors;
