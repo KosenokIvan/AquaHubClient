@@ -1,32 +1,35 @@
 import React from "react";
 
 // import Card from "react-bootstrap/Card";
-// import Alert from "react-bootstrap/Alert";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 
 import ArticlesList from "../widgets/articlesList";
-import {ConnectionErrorWidget} from "../widgets/errorWidget";
-// import * as cst from "../tools/constants";
+import ErrorWidget, {ErrorLink} from "../widgets/errorWidget";
+// import * as cst from "../tools/constants"
 
 class UserPage extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             articles: [],
-            authors: new Map(),
-            connectionError: false
+            user: null,
+            error: null
         }
     }
 
     render() {
         let content;
-        let user = this.state.authors.get(this.props.userId);
-        if (!this.state.connectionError) {
+        let user = this.state.user;
+        let authorsMap = new Map();
+        if (user !== null) {
+            authorsMap.set(user.userId, user);
+        }
+        if (this.state.error === null) {
             content = (
                 <>
                     {
-                        user !== undefined &&
+                        user !== null &&
                         <Container className="user-info" fluid>
                             <Row>
                                 <h3>@{user.nickname}</h3>
@@ -38,14 +41,12 @@ class UserPage extends React.Component {
                     }
                     <ArticlesList 
                         articles={this.state.articles}
-                        authors={this.state.authors}
+                        authors={authorsMap}
                         onNicknameClick={this.props.onNicknameClick}/>
                 </>
             );
         } else {
-            content = (
-                <ConnectionErrorWidget/>
-            );
+            content = this.state.error;
         }
         return (
             <div className="user-page">
@@ -59,46 +60,61 @@ class UserPage extends React.Component {
     }
 
     loadArticles() {
-        let articlesList;
+        let user;
+        let authors = new Map();
         let apiWorker = this.props.apiWorker;
-        apiWorker.getArticles(null, null, [this.props.userId]).then(
-            (articles) => {
-                articlesList = articles;
-                return this.loadUser(this.props.userId);
-            },
-            (error) => {
-                console.error(`Load articles error: ${error.message}`);
-                this.setState({
-                    connectionError: true
-                });
+        this.loadUser(this.props.userId).then(
+            (userObj) => {
+                user = userObj;
+                authors.set(user.userId, user);
+                return apiWorker.getArticles(null, null, [user.userId]);
             }
         ).then(
-            (authors) => {
+            (articles) => {
                 this.setState({
-                    articles: articlesList,
-                    authors: authors
+                    articles: articles,
+                    user: user
                 });
-            },
-            (error) => {
-                console.error(`Load articles error: ${error.message}`);
+            }
+        ).catch(
+            (err) => {
+                let errorWidget;
+                if (err.name === "UnauthorizedError") {
+                    errorWidget = (
+                        <ErrorWidget title="Unauthorized">
+                            <p>
+                                <ErrorLink>Log in</ErrorLink>, for open this page
+                            </p>
+                        </ErrorWidget>
+                    );
+                } else {
+                    errorWidget = (
+                        <ErrorWidget title="Error">
+                            <p>Unknown error</p>
+                        </ErrorWidget>
+                    );
+                }
+                console.error(`HTTP error: ${err.message}`);
                 this.setState({
-                    connectionError: true
+                    error: errorWidget
                 });
             }
         );
     }
 
     async loadUser(userId) {
-        let authors = new Map();
         let apiWorker = this.props.apiWorker;
         let author;
         try {
-            author = await apiWorker.getUser(userId);
+            if (userId === "me") {
+                author = await apiWorker.getUserMe();
+            } else {
+                author = await apiWorker.getUser(userId);
+            }
         } catch (error) {
-            Promise.reject(error);
+            await Promise.reject(error);
         }
-        authors.set(userId, author);
-        return authors;
+        return author;
     }
 }
 

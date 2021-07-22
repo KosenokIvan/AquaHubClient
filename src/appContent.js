@@ -2,97 +2,119 @@ import React from "react";
 
 import AquaHubAPIWorker from "./aqua_hub_api/aquaHubAPI";
 
-// import Button from "react-bootstrap/Button";
-import Navbar from "react-bootstrap/Navbar";
-import Nav from "react-bootstrap/Nav";
-import Container from "react-bootstrap/Container";
+import AppHeader from "./widgets/header";
+import AppHeaderButton from "./widgets/headerButton";
 
 import MainPage from "./pages/mainPage";
 import UserPage from "./pages/userPage";
+import LoginPage from "./pages/loginPage";
 import * as cst from "./tools/constants";
+
 
 class AppContent extends React.Component {
     constructor(props) {
         super(props);
         this.apiWorker = new AquaHubAPIWorker(cst.SERVER_ADDR);
+
+        this.getMainPage = this.getMainPage.bind(this);
+        this.openMainPage = this.openMainPage.bind(this);
+        this.openUserPage = this.openUserPage.bind(this);
+        this.openUserMePage = this.openUserMePage.bind(this);
+        this.openLoginPage = this.openLoginPage.bind(this);
+
         this.state = {
-            currentPage: cst.MAIN_PAGE,
-            currentPageData: {},
+            currentPage: this.getMainPage(),
             currentUser: null
-        }
+        };
+    }
+
+    getMainPage() {
+        return (
+            <MainPage
+            apiWorker={this.apiWorker}
+            onNicknameClick={
+                (user) => {
+                    this.openUserPage(user.userId);
+                }
+            }/>
+        );
+    }
+
+    openMainPage() {
+        this.setState({
+            currentPage: this.getMainPage()
+        });
+    }
+
+    openUserPage(userId) {
+        this.setState({
+            currentPage: (
+                <UserPage
+                apiWorker={this.apiWorker}
+                key={userId}
+                userId={userId}
+                onNicknameClick={
+                    (user) => {
+                        this.openUserPage(user.userId);
+                    }
+                }/>
+            )
+        });
+    }
+
+    openUserMePage() {
+        this.openUserPage("me");
+    }
+
+    openLoginPage(errorMessage=null) {
+        this.setState({
+            currentPage: (
+                <LoginPage
+                errorMessage={errorMessage}
+                onLogin={
+                    (nickname, password) => {
+                        this.apiWorker.login(nickname, password).then(
+                            () => {
+                                this.openUserMePage();
+                            }
+                        ).catch(
+                            (err) => {
+                                this.openLoginPage(err.message);
+                            } 
+                        );
+                    } 
+                }/>
+            )
+        });
     }
 
     render() {
-        let currentPage;
-        switch(this.state.currentPage) {
-            case cst.MAIN_PAGE:
-                currentPage = <MainPage 
-                    apiWorker={this.apiWorker}
-                    onNicknameClick={
-                        (user) => {
-                            this.setState({
-                                currentPage: cst.USER_PAGE,
-                                currentPageData: {
-                                    userId: user.userId
-                                }
-                            });
-                        }
-                }/>;
-                break;
-            case cst.USER_PAGE:
-                currentPage = <UserPage 
-                    apiWorker={this.apiWorker}
-                    userId={this.state.currentPageData.userId}
-                    onNicknameClick={
-                        (user) => {
-                            this.setState({
-                                currentPage: cst.USER_PAGE,
-                                currentPageData: {
-                                    userId: user.userId
-                                }
-                            });
-                        }
-                    }/>;
-                break;
-            default:
-                currentPage = (<div>
-                    Unknown page: {this.state.currentPage}
-                </div>);  // TODO: add error widget
-        }
         return (
             <div className="App">
-                <header className="App-header">
-                    <Navbar 
-                      expand="lg"
-                      bg="light" 
-                      sticky="top">
-                        <Container fluid>
-                            <Navbar.Brand>AquaHub</Navbar.Brand>
-                            <Navbar.Toggle aria-controls="navbar-nav"/>
-                            <Navbar.Collapse id="navbar-nav">
-                                <Nav className="me-auto">
-                                    <Nav.Item>
-                                        <Nav.Link
-                                        onClick={
-                                            (e) => {
-                                                e.preventDefault();
-                                                this.setState({
-                                                    currentPage: cst.MAIN_PAGE
-                                                });
-                                            }
-                                        }>
-                                            Main page
-                                        </Nav.Link>
-                                    </Nav.Item>
-                                </Nav>
-                            </Navbar.Collapse>
-                        </Container>
-                    </Navbar>
-                </header>
-                {currentPage}
+                <AppHeader>
+                    <AppHeaderButton
+                        text="Account"
+                        onClick={
+                            () => {
+                                this.openUserMePage();
+                            }
+                        }/>
+                    <AppHeaderButton
+                        text="Main page"   
+                        onClick={this.openMainPage}/>
+                    <AppHeaderButton
+                        text="Login" 
+                        onClick={
+                            () => {
+                                this.openLoginPage(null);
+                            }
+                        }/>
+                </AppHeader>
+                {this.state.currentPage}
             </div>
         );
     }
 }
+
 
 export default AppContent;

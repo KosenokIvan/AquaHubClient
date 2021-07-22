@@ -12,6 +12,13 @@ export class ConnectionFailedError extends AquaHubError {
     }
 }
 
+export class UnauthorizedError extends AquaHubError {
+    constructor(msg) {
+        super(msg);
+        this.name = "UnauthorizedError";
+    }
+}
+
 export class IncorrectLoginData extends AquaHubError {
     constructor(msg) {
         super(msg);

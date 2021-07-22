@@ -7,8 +7,16 @@ class ErrorWidget extends React.Component {
         return (
             <Alert variant="danger">
                 <Alert.Heading>{this.props.title}</Alert.Heading>
-                <p>{this.props.content}</p>
+                {this.props.children}
             </Alert>
+        );
+    }
+}
+
+export class ErrorLink extends React.Component {
+    render() {
+        return (
+            <Alert.Link>{this.props.children}</Alert.Link>
         );
     }
 }
@@ -16,9 +24,9 @@ class ErrorWidget extends React.Component {
 export class ConnectionErrorWidget extends React.Component {
     render() {
         return (
-            <ErrorWidget 
-                title="Connection failed"
-                content="Failed to connect to the server"/>
+            <ErrorWidget title="Connection failed">
+                Failed to connect to the server
+            </ErrorWidget>
         );
     }
 }

@@ -1,7 +1,7 @@
 import React from "react";
 
 import ArticlesList from "../widgets/articlesList";
-import {ConnectionErrorWidget} from "../widgets/errorWidget";
+import ErrorWidget from "../widgets/errorWidget";
 // import * as cst from "../tools/constants"
 
 class MainPage extends React.Component {
@@ -10,13 +10,13 @@ class MainPage extends React.Component {
         this.state = {
             articles: [],
             authors: new Map(),
-            connectionError: false
+            error: null
         }
     }
 
     render() {
         let content;
-        if (!this.state.connectionError) {
+        if (this.state.error === null) {
             content = (
                 <ArticlesList 
                     articles={this.state.articles}
@@ -24,9 +24,7 @@ class MainPage extends React.Component {
                     onNicknameClick={this.props.onNicknameClick}/>
             );
         } else {
-            content = (
-                <ConnectionErrorWidget/>
-            );
+            content = this.state.error;
         }
         return (
             <div className="main-page">
@@ -64,13 +62,16 @@ class MainPage extends React.Component {
                     articles: articlesList,
                     authors: authors
                 });
-            },
-            (error) => {
+            }
+        ).catch(
+           (error) => {
                 console.error(`Load articles error: ${error.message}`);
                 this.setState({
-                    connectionError: true
+                    error: (<ErrorWidget title="Error">
+                                <p>Unknown error</p>
+                            </ErrorWidget>)
                 });
-            }
+            } 
         );
     }
 
@@ -82,7 +83,7 @@ class MainPage extends React.Component {
             try {
                 author = await apiWorker.getUser(authorId);
             } catch (error) {
-                Promise.reject(error);
+                await Promise.reject(error);
             }
             authors.set(authorId, author);
         }
