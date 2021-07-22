@@ -98,7 +98,7 @@ class UserPage extends React.Component {
                 author = await apiWorker.getUser(userId);
             }
         } catch (error) {
-            Promise.reject(error);
+            await Promise.reject(error);
         }
         return author;
     }

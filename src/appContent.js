@@ -2,14 +2,14 @@ import React from "react";
 
 import AquaHubAPIWorker from "./aqua_hub_api/aquaHubAPI";
 
-import Navbar from "react-bootstrap/Navbar";
-import Nav from "react-bootstrap/Nav";
-import Container from "react-bootstrap/Container";
+import AppHeader from "./widgets/header";
+import AppHeaderButton from "./widgets/headerButton";
 
 import MainPage from "./pages/mainPage";
 import UserPage from "./pages/userPage";
 import LoginPage from "./pages/loginPage";
 import * as cst from "./tools/constants";
+
 
 class AppContent extends React.Component {
     constructor(props) {
@@ -62,18 +62,7 @@ class AppContent extends React.Component {
     }
 
     openUserMePage() {
-        this.setState({
-            currentPage: (
-                <UserPage
-                apiWorker={this.apiWorker}
-                userId="me"
-                onNicknameClick={
-                    (user) => {
-                        this.openUserPage(user.userId);
-                    }
-                }/>
-            )
-        });
+        this.openUserPage("me");
     }
 
     openLoginPage(errorMessage=null) {
@@ -100,39 +89,30 @@ class AppContent extends React.Component {
     render() {
         return (
             <div className="App">
-                <header className="App-header">
-                    <Navbar 
-                      expand="lg"
-                      bg="light" 
-                      sticky="top">
-                        <Container fluid>
-                            <Navbar.Brand>AquaHub</Navbar.Brand>
-                            <Navbar.Toggle aria-controls="navbar-nav"/>
-                            <Navbar.Collapse id="navbar-nav">
-                                <Nav className="me-auto">
-                                    <Nav.Item>
-                                        <Nav.Link onClick={this.openMainPage}>
-                                            Main page
-                                        </Nav.Link>
-                                    </Nav.Item>
-                                    <Nav.Item>
-                                        <Nav.Link variant="link" onClick={
-                                            () => {
-                                                this.openLoginPage(null);
-                                            }
-                                        }>
-                                            Login
-                                        </Nav.Link>
-                                    </Nav.Item>
-                                </Nav>
-                            </Navbar.Collapse>
-                        </Container>
-                    </Navbar>
-                </header>
+                <AppHeader>
+                    <AppHeaderButton
+                        text="Account"
+                        onClick={
+                            () => {
+                                this.openUserMePage();
+                            }
+                        }/>
+                    <AppHeaderButton
+                        text="Main page"   
+                        onClick={this.openMainPage}/>
+                    <AppHeaderButton
+                        text="Login" 
+                        onClick={
+                            () => {
+                                this.openLoginPage(null);
+                            }
+                        }/>
+                </AppHeader>
                 {this.state.currentPage}
             </div>
         );
     }
 }
+
 
 export default AppContent;

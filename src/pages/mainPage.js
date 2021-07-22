@@ -10,13 +10,13 @@ class MainPage extends React.Component {
         this.state = {
             articles: [],
             authors: new Map(),
-            connection_error: false
+            connectionError: false
         }
     }
 
     render() {
         let content;
-        if (!this.state.connection_error) {
+        if (!this.state.connectionError) {
             content = (
                 <ArticlesList 
                     articles={this.state.articles}
@@ -82,7 +82,7 @@ class MainPage extends React.Component {
             try {
                 author = await apiWorker.getUser(authorId);
             } catch (error) {
-                Promise.reject(error);
+                await Promise.reject(error);
             }
             authors.set(authorId, author);
         }
