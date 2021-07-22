@@ -5,7 +5,7 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 
 import ArticlesList from "../widgets/articlesList";
-import {ConnectionErrorWidget} from "../widgets/errorWidget";
+import ErrorWidget, {ErrorLink} from "../widgets/errorWidget";
 // import * as cst from "../tools/constants"
 
 class UserPage extends React.Component {
@@ -14,7 +14,7 @@ class UserPage extends React.Component {
         this.state = {
             articles: [],
             user: null,
-            connectionError: false
+            error: null
         }
     }
 
@@ -25,7 +25,7 @@ class UserPage extends React.Component {
         if (user !== null) {
             authorsMap.set(user.userId, user);
         }
-        if (!this.state.connectionError) {
+        if (this.state.error === null) {
             content = (
                 <>
                     {
@@ -46,9 +46,7 @@ class UserPage extends React.Component {
                 </>
             );
         } else {
-            content = (
-                <ConnectionErrorWidget/>
-            );
+            content = this.state.error;
         }
         return (
             <div className="user-page">
@@ -80,9 +78,25 @@ class UserPage extends React.Component {
             }
         ).catch(
             (err) => {
+                let errorWidget;
+                if (err.name === "UnauthorizedError") {
+                    errorWidget = (
+                        <ErrorWidget title="Unauthorized">
+                            <p>
+                                <ErrorLink>Log in</ErrorLink>, for open this page
+                            </p>
+                        </ErrorWidget>
+                    );
+                } else {
+                    errorWidget = (
+                        <ErrorWidget title="Error">
+                            <p>Unknown error</p>
+                        </ErrorWidget>
+                    );
+                }
                 console.error(`HTTP error: ${err.message}`);
                 this.setState({
-                    connectionError: true
+                    error: errorWidget
                 });
             }
         );

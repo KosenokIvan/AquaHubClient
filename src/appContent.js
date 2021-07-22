@@ -46,12 +46,13 @@ class AppContent extends React.Component {
         });
     }
 
-    openUserPage(user_id) {
+    openUserPage(userId) {
         this.setState({
             currentPage: (
                 <UserPage
                 apiWorker={this.apiWorker}
-                userId={user_id}
+                key={userId}
+                userId={userId}
                 onNicknameClick={
                     (user) => {
                         this.openUserPage(user.userId);
@@ -75,10 +76,11 @@ class AppContent extends React.Component {
                         this.apiWorker.login(nickname, password).then(
                             () => {
                                 this.openUserMePage();
-                            },
+                            }
+                        ).catch(
                             (err) => {
                                 this.openLoginPage(err.message);
-                            }
+                            } 
                         );
                     } 
                 }/>
